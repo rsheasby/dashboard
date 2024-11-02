@@ -1,10 +1,5 @@
-<script lang="ts">
-    import Widget_1x1 from "../components/Widget.svelte";
+<script>
+	import Clock from "@components/clock.svelte";
 
 </script>
-
-<div id="container" class="h-full w-full bg-slate-100">
-    <Widget_1x1/>
-</div>
-
-
+<Clock/>

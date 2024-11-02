@@ -1,10 +1,10 @@
 <script module>
   import { defineMeta } from '@storybook/addon-svelte-csf';
-  import Widget from '@components/Widget.svelte';
+  import Clock from './clock.svelte';
 
   const { Story } = defineMeta({
-    title: 'Components/Widget',
-    component: Widget,
+    title: 'Components/Clock',
+    component: Clock,
     tags: ['autodocs'],
     argTypes: {
     },
