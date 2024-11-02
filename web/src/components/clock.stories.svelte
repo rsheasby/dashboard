@@ -1,31 +1,40 @@
-<script module>
+<script module lang="ts">
 	import { defineMeta } from '@storybook/addon-svelte-csf';
 	import Clock from './clock.svelte';
 	import Background from './background.svelte';
+
+	const args = {
+		underText: 'you have a meeting in 10 minutes.'
+	};
+	type Args = typeof args;
 
 	const { Story } = defineMeta({
 		title: 'Components/Clock',
 		component: Clock,
 		tags: ['autodocs'],
 		argTypes: {},
-		args: {}
+		args
 	});
 </script>
 
 <Story name="Wide">
-	<div class="wide-container">
-		<Background>
-			<Clock />
-		</Background>
-	</div>
+	{#snippet children(args: Args)}
+		<div class="wide-container">
+			<Background>
+				<Clock underText={args.underText} />
+			</Background>
+		</div>
+	{/snippet}
 </Story>
 
 <Story name="Tall">
-	<div class="tall-container">
-		<Background>
-			<Clock />
-		</Background>
-	</div>
+	{#snippet children(args: Args)}
+		<div class="tall-container">
+			<Background>
+				<Clock underText={args.underText} />
+			</Background>
+		</div>
+	{/snippet}
 </Story>
 
 <style>

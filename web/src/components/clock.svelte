@@ -1,6 +1,7 @@
 <script lang="ts">
     import { onMount, onDestroy } from 'svelte';
 
+    let {underText} : {underText?: string} = $props();
     let currentTime = $state(new Date());
     let intervalId: NodeJS.Timeout;
 
@@ -13,6 +14,7 @@
             clearInterval(intervalId);
         };
     });
+
     const twelveHour = (t: Date) => {
         let h = t.getHours();
         return (h % 12 || 12).toString();
@@ -28,12 +30,15 @@
 <style>
 </style>
 
-<div class="flex flex-row justify-center text-white gap-2 p-3">
-    <div class="flex-1"></div>
+<div class="flex flex-row justify-center gap-2 p-3">
+    <div class="flex-1 text-xs"></div>
     <div class="text-6xl flex flex-row gap-0.5">
         <div class="font-bold mr-0.5">{hours}</div>
-        <div class="text-rabbit relative top-[-2px] text-5xl self-center font-bold">:</div>
+        <div class="text-rabbit relative top-[3px] text-5xl font-bold">:</div>
         <div class="text-rabbit font-thin">{minutes}</div>
     </div>
     <div class="flex-1 justify-self-end self-end text-md">{ampm}</div>
+</div>
+<div class="text-center text-xs font-thin">
+    {underText}
 </div>
