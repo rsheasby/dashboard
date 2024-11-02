@@ -25,7 +25,7 @@
 
 </script>
 
-<div class="flex flex-row bg-gray-700">
+<div class="flex flex-row text-white h-[50%] bg-gray-700">
     <div>it is</div>
     <div>{hours}:{minutes}:{seconds} {ampm}</div>
 </div>
