@@ -21,11 +21,19 @@
     let hours: string = $derived(twelveHour(currentTime));
     let minutes = $derived(currentTime.getMinutes().toString().padStart(2, '0'));
     let seconds = $derived(currentTime.getSeconds().toString().padStart(2, '0'));
-    let ampm = $derived(currentTime.getHours() >= 12 ? 'pm' : 'am');
+    let ampm = $derived(currentTime.getHours() >= 12 ? 'PM' : 'AM');
 
 </script>
 
-<div class="flex flex-row text-white h-[50%] bg-gray-700">
-    <div>it is</div>
-    <div>{hours}:{minutes}:{seconds} {ampm}</div>
+<style>
+</style>
+
+<div class="flex flex-row justify-center text-white gap-2 p-3">
+    <div class="flex-1"></div>
+    <div class="text-6xl flex flex-row gap-0.5">
+        <div class="font-bold mr-0.5">{hours}</div>
+        <div class="text-rabbit relative top-[-2px] text-5xl self-center font-bold">:</div>
+        <div class="text-rabbit font-thin">{minutes}</div>
+    </div>
+    <div class="flex-1 justify-self-end self-end text-md">{ampm}</div>
 </div>

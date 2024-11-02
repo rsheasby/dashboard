@@ -8,7 +8,12 @@ export default {
   content: ['./src/**/*.{html,js,svelte,ts}'],
 
   theme: {
-    extend: {}
+    extend: {
+      colors: {
+        'rabbit': '#ec5b2b',
+        'rabbit-dark': '#c24a1a',
+      },
+    }
   },
 
   plugins: [typography, forms, containerQueries, aspectRatio]
