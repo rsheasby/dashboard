@@ -1,7 +1,10 @@
 <script lang="ts">
+	import Background from '@components/background.svelte';
 	import '../app.css';
 
-    let { children } = $props();
+	let { children } = $props();
 </script>
 
-{@render children()}
+<Background>
+	{@render children()}
+</Background>

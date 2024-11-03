@@ -2,23 +2,27 @@
 	import { defineMeta } from '@storybook/addon-svelte-csf';
 	import Clock from './clock.svelte';
 	import Background from './background.svelte';
+	import type { ArgTypes } from '@storybook/svelte';
 
-	const args = {
-		underText: 'you have a meeting in 10 minutes.'
+	const argTypes: ArgTypes = {
+		underText: {
+			control: 'text',
+		}
 	};
-	type Args = typeof args;
 
 	const { Story } = defineMeta({
 		title: 'Components/Clock',
 		component: Clock,
 		tags: ['autodocs'],
-		argTypes: {},
-		args
+		argTypes,
+		args: {
+			underText: 'you have a meeting in 10 minutes.'
+		}
 	});
 </script>
 
 <Story name="Wide">
-	{#snippet children(args: Args)}
+	{#snippet children(args: any)}
 		<div class="wide-container">
 			<Background>
 				<Clock underText={args.underText} />
@@ -28,7 +32,7 @@
 </Story>
 
 <Story name="Tall">
-	{#snippet children(args: Args)}
+	{#snippet children(args: any)}
 		<div class="tall-container">
 			<Background>
 				<Clock underText={args.underText} />
@@ -38,13 +42,17 @@
 </Story>
 
 <style>
-	.wide-container {
-		width: 320px;
-		height: 240px;
+	:root {
+		--clock-height: 300px;
+		--clock-width: 400px;
+	}
+	.wide-container {	
+		width: var(--clock-width);
+		height: var(--clock-height);
 	}
 
 	.tall-container {
-		width: 240px;
-		height: 320px;
+		width: var(--clock-height);
+		height: var(--clock-width);
 	}
 </style>

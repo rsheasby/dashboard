@@ -10,8 +10,9 @@ export default {
   theme: {
     extend: {
       colors: {
-        'rabbit': '#ec5b2b',
-        'rabbit-dark': '#c24a1a',
+        'primary': 'var(--primary)',
+        'rabbit': 'var(--rabbit)',
+        'rabbit-dark': 'var(--rabbit-dark)',
       },
     }
   },

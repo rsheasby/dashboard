@@ -3,6 +3,4 @@
 	import Clock from "@components/clock.svelte";
 
 </script>
-<Background>
-	<Clock/>
-</Background>
+<Clock/>
