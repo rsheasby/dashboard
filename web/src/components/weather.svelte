@@ -5,6 +5,6 @@
 </script>
 
 <div class="w-min h-min" class:justify-self-end={right}>
-    blahblah
+    weather goes here
     <!-- <WeatherIcon selectedIcon="drizzle"/> -->
 </div>

@@ -38,7 +38,7 @@
 
 <style>
 	.grid-overview {
-		grid-template-columns: 50% 50%;
+		grid-template-columns: 60% 40%;
 		grid-template-rows: 50% 50%;
 	}
 	.grid-clock {

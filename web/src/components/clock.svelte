@@ -109,7 +109,7 @@ em {
     </div>
     <div class="font-extralight text-xs text-gray-500">
         <!-- you have a meeting in <strong class="animate-pulse">10</strong> minutes. -->
-        your next meeting is at <em>12:30 AM</em>.
+        <!-- your next meeting is at <em>12:30 AM</em>. -->
         <!-- your next meeting is in <em>two hours</em>. -->
     </div>
 </div>
