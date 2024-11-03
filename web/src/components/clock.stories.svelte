@@ -6,7 +6,7 @@
 
 	const argTypes: ArgTypes = {
 		underText: {
-			control: 'text',
+			control: 'text'
 		}
 	};
 
@@ -21,38 +21,12 @@
 	});
 </script>
 
-<Story name="Wide">
+<Story name="Time">
 	{#snippet children(args: any)}
-		<div class="wide-container">
+		<div class="w-fit">
 			<Background>
 				<Clock underText={args.underText} />
 			</Background>
 		</div>
 	{/snippet}
 </Story>
-
-<Story name="Tall">
-	{#snippet children(args: any)}
-		<div class="tall-container">
-			<Background>
-				<Clock underText={args.underText} />
-			</Background>
-		</div>
-	{/snippet}
-</Story>
-
-<style>
-	:root {
-		--clock-height: 300px;
-		--clock-width: 400px;
-	}
-	.wide-container {	
-		width: var(--clock-width);
-		height: var(--clock-height);
-	}
-
-	.tall-container {
-		width: var(--clock-height);
-		height: var(--clock-width);
-	}
-</style>

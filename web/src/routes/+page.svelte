@@ -1,6 +1,5 @@
 <script>
-	import Background from "@components/background.svelte";
-	import Clock from "@components/clock.svelte";
-
+	import Page from './page.svelte';
 </script>
-<Clock/>
+
+<Page />

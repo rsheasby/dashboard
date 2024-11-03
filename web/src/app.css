@@ -23,3 +23,17 @@ body {
     width: 100vw;
 }
 
+@keyframes rabbitPulse {
+    100% {
+        color: var(--rabbit);
+    }
+}
+
+.rabbit-pulse {
+    animation-name: rabbitPulse;
+    animation-duration: 1s;
+    animation-iteration-count: infinite;
+    animation-direction: alternate;
+    animation-timing-function: ease-in-out;
+}
+
