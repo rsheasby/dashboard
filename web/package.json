@@ -49,6 +49,6 @@
     "vite": "^5.0.3"
   },
   "dependencies": {
-    "@bybas/weather-icons": "^2.0.0"
+    "@lottiefiles/dotlottie-svelte": "^0.3.23"
   }
 }

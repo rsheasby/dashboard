@@ -1,7 +1,6 @@
 <script module lang="ts">
 	import { defineMeta } from '@storybook/addon-svelte-csf';
 	import Clock from './clock.svelte';
-	import Background from './background.svelte';
 	import type { ArgTypes } from '@storybook/svelte';
 
 	const argTypes: ArgTypes = {
@@ -24,9 +23,7 @@
 <Story name="Time">
 	{#snippet children(args: any)}
 		<div class="w-fit">
-			<Background>
-				<Clock underText={args.underText} />
-			</Background>
+			<Clock underText={args.underText} />
 		</div>
 	{/snippet}
 </Story>

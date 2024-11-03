@@ -1044,11 +1044,6 @@
   resolved "https://registry.yarnpkg.com/@biomejs/cli-win32-x64/-/cli-win32-x64-1.8.3.tgz#6a9dc5a4e13357277da43c015cd5cdc374035448"
   integrity sha512-/PJ59vA1pnQeKahemaQf4Nyj7IKUvGQSc3Ze1uIGi+Wvr1xF7rGobSrAAG01T/gUDG21vkDsZYM03NAmPiVkqg==
 
-"@bybas/weather-icons@^2.0.0":
-  version "2.0.0"
-  resolved "https://registry.yarnpkg.com/@bybas/weather-icons/-/weather-icons-2.0.0.tgz#eca742defd0f96cdbd77d75c494423affeb91afb"
-  integrity sha512-sUcp8kbQZYoYgTpHkQ1vrxKVSHdc4SxzXLuluVZYa5u8Nqq/GhDYOtWrWLqgN/GhwsZ74dja8TlMvyTll4yl0Q==
-
 "@chromatic-com/storybook@^1.9.0":
   version "1.9.0"
   resolved "https://registry.yarnpkg.com/@chromatic-com/storybook/-/storybook-1.9.0.tgz#d95eb3474783bcc17a830a7627c3f099c1f75ba5"
@@ -1567,6 +1562,18 @@
   dependencies:
     "@jridgewell/resolve-uri" "^3.1.0"
     "@jridgewell/sourcemap-codec" "^1.4.14"
+
+"@lottiefiles/dotlottie-svelte@^0.3.23":
+  version "0.3.23"
+  resolved "https://registry.yarnpkg.com/@lottiefiles/dotlottie-svelte/-/dotlottie-svelte-0.3.23.tgz#e209e35238cffdfbce62022d70c14442f2414116"
+  integrity sha512-hVp+FY1Ymh5Tz4oH7BN/wtKvSEgqlRJlEJ2Plfr7L0FnNGllf+f8ZddUMGUejG8pZhFJqdvPALXezPrhbjfrAQ==
+  dependencies:
+    "@lottiefiles/dotlottie-web" "0.36.1"
+
+"@lottiefiles/dotlottie-web@0.36.1":
+  version "0.36.1"
+  resolved "https://registry.yarnpkg.com/@lottiefiles/dotlottie-web/-/dotlottie-web-0.36.1.tgz#0507a1422ac3f40fde1cc56ebec4120524164a77"
+  integrity sha512-KvxOH5Msk0Ivqpgq4p1DGo1IG2XPX4kEVkhssTaOUEvoeCxDLru+DlbUzwG8b5JcJwEBmrAMzCNzCTmn+uMFxQ==
 
 "@mdx-js/react@^3.0.0":
   version "3.1.0"
