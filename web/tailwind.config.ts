@@ -15,6 +15,11 @@ export default {
         'rabbit-dark': 'var(--rabbit-dark)',
       },
       fontSize: {
+        '6xs': '0.125em',
+        '5xs': '0.1875em',
+        '4xs': '0.25em',
+        '3xs': '0.375em',
+        '2xs': '0.5em',
         xs: '0.75em' /* 12px */,
         sm: '0.875em' /* 14px */,
         md: '1em' /* 16px */,

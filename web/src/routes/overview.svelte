@@ -17,7 +17,7 @@
 </script>
 
 <div
-	class="grid-overview grid h-full w-full place-content-between transition-zoom"
+	class="grid-overview grid h-full w-full place-content-between transition-zoom bg-black"
 	class:grid-clock={currentView === 'clock'}
 >
 	<div
@@ -25,13 +25,13 @@
 		class="h-full flex justify-center items-center"
 		hidden={!clockShown}
 	>
-        <div class="transition-zoom {currentView === 'clock' ? '' : 'w-full h-full'}"
+        <div class="transition-zoom {currentView === 'clock' ? 'max-w-full' : 'w-full h-full'}"
 		class:text-3xl={currentView === 'clock'}
         >
             <Clock onclick={toggleClock} showDetail={currentView === 'clock'} />
         </div>
 	</div>
-	<div id="weather">
+	<div id="weather" class="min-w-fit flex justify-end">
 		<Weather right />
 	</div>
 </div>
@@ -48,7 +48,6 @@
     
     .transition-zoom {
 		transition-duration: 0.5s;
-        transition-delay: 0;
     }
 
 	#clock {

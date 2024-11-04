@@ -1,5 +1,5 @@
 <script>
-	import Page from './page.svelte';
+	import Overview from './overview.svelte';
 </script>
 
-<Page />
+<Overview />

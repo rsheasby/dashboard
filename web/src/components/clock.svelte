@@ -47,17 +47,17 @@
 	let hours: string = $derived(twelveHour(currentTime));
 	let minutes = $derived(currentTime.getMinutes().toString().padStart(2, '0'));
 	let seconds = $derived(currentTime.getSeconds().toString().padStart(2, '0'));
-	let ampm = 'AM';
+	let ampm = $derived(currentTime.getHours() >= 12 ? 'PM' : 'AM');
 </script>
 
 <!-- svelte-ignore a11y_click_events_have_key_events -->
 <!-- svelte-ignore a11y_no_static_element_interactions -->
-<div class="flex flex-col gap-1 p-2" {onclick}>
+<div class="flex flex-col gap-1 p-2 w-fit max-w-full" {onclick}>
 	<div class="grid-date text-xs font-light text-gray-500">
 		it is the <strong class="rabbit-text">{day}</strong> of {month}
-		{year}.
+		{year},
 	</div>
-	<div class="grid-time flex flex-row justify-center gap-2">
+	<div class="grid-time flex flex-row justify-center gap-1 flex-wrap">
 		<!-- <div class="flex-1"></div> -->
 		<div class="flex flex-row gap-0.5 leading-[1]">
 			<div class="mr-0.5 text-6xl font-bold">{hours}</div>
@@ -69,18 +69,19 @@
 		<div class="text-md relative top-0.5 flex-1" class:self-end={ampm === 'PM'}>{ampm}</div>
 	</div>
 	<div class="text-xs font-extralight">
-		<div class="grid-meet-time text-gray-300">
-			<!-- you have a meeting in <strong class="highlighted underarrow animate-pulse transition-opacity" class:underarrow-hide={!showDetail}>10 mins</strong>. -->
-			<!-- your next meeting is at <em>12:30 AM</em>. -->
+		<div class="grid-meet-time text-gray-300 text-xs text-right">
+			<!-- and you have a meeting in <strong class="highlighted underarrow right animate-pulse transition-opacity" class:underarrow-hide={!showDetail}>10 minutes</strong>. -->
+			<!-- and your next meeting is at <em>12:30 AM</em>. -->
 			<!-- your next meeting is in <em>two hours</em>. -->
-			<!-- you should be in <strong class="highlighted underarrow right transition-opacity" class:underarrow-hide={!showDetail}>a meeting</strong>. -->
+            <i>and your calendar is free.</i>
 		</div>
 		<div
-			class="grid-meet-name flex flex-row items-center justify-end pr-1 text-right transition-opacity"
+			class="grid-meet-name flex flex-row items-center justify-end pr-1 text-right transition-opacity text-xs"
 			class:opacity-0={!showDetail}
 		>
-        <div class="loader"></div>
-			<em>Experience Standup</em>
+			<!-- <em>Experience Standup</em> -->
+			<!-- <div class="loader"></div> -->
+			<!-- <i>Lilo & Friends</i> -->
 		</div>
 	</div>
 </div>
@@ -94,7 +95,7 @@
 		}
 		50%,
 		60% {
-			filter: saturate(200%);
+			filter: saturate(150%);
 		}
 	}
 
@@ -144,16 +145,16 @@
 	}
 
 	.loader {
-        @apply bg-gray-950;
+		@apply bg-gray-950;
 		width: 0.8em;
 		height: 0.8em;
 		border-radius: 50%;
-        border: 3px solid var(--primary);
+		border: 0.15em solid var(--primary);
 		display: inline-block;
 		position: relative;
 		box-sizing: border-box;
 		animation: rotation 10s linear infinite;
-        margin-right: 0.25em;
+		margin-right: 0.25em;
 	}
 	.loader::after,
 	.loader::before {
@@ -163,9 +164,9 @@
 		left: 0;
 		top: 0;
 		background: var(--primary);
-		width: 3px;
-		height: 3px;
-		transform: translate(100%, 100%);
+		width: 0.15em;
+		height: 0.15em;
+		transform: translate(50%, 50%);
 		border-radius: 50%;
 	}
 	.loader::before {
@@ -173,10 +174,10 @@
 		top: auto;
 		right: 0;
 		bottom: 0;
-		transform: translate(-100%, -100%);
+		transform: translate(-50%, -50%);
 	}
-    
-    /* .loader {
+
+	/* .loader {
   width: 1em;
   height: 1em;
   display: inline-block;
@@ -199,17 +200,16 @@
   animation-delay: 1s;
 } */
 
-@keyframes animloader {
-  0% {
-    transform: scale(0);
-    opacity: 1;
-  }
-  100% {
-    transform: scale(1);
-    opacity: 0;
-  }
-}
-    
+	@keyframes animloader {
+		0% {
+			transform: scale(0);
+			opacity: 1;
+		}
+		100% {
+			transform: scale(1);
+			opacity: 0;
+		}
+	}
 
 	@keyframes rotation {
 		0% {
