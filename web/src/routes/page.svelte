@@ -28,7 +28,7 @@
         <div class="transition-zoom {currentView === 'clock' ? '' : 'w-full h-full'}"
 		class:text-3xl={currentView === 'clock'}
         >
-            <Clock onclick={toggleClock} />
+            <Clock onclick={toggleClock} showDetail={currentView === 'clock'} />
         </div>
 	</div>
 	<div id="weather">

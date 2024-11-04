@@ -29,6 +29,7 @@ export default {
       spacing: {
         0: '0em',
         1: '0.25em',
+        1.5: '0.375em',
         2: '0.5em',
         3: '0.75em',
         4: '1em',

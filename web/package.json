@@ -49,6 +49,7 @@
     "vite": "^5.0.3"
   },
   "dependencies": {
-    "@lottiefiles/dotlottie-svelte": "^0.3.23"
+    "@lottiefiles/dotlottie-svelte": "^0.3.23",
+    "google-auth-library": "^9.14.2"
   }
 }
