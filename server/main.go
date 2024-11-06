@@ -7,7 +7,6 @@ import (
 	"log"
 	"net/http"
 	"os"
-	"strings"
 	"time"
 
 	"github.com/joho/godotenv"
@@ -19,6 +18,7 @@ import (
 
 var (
 	oauthConfig *oauth2.Config
+	client      *http.Client
 )
 
 func init() {
@@ -34,6 +34,15 @@ func init() {
 		Scopes:       []string{calendar.CalendarReadonlyScope},
 		Endpoint:     google.Endpoint,
 	}
+
+	token, err := tokenFromFile()
+	if err != nil {
+		fmt.Println("Token file not found or invalid, please login to generate a new token.")
+		return
+	}
+
+	ts := oauthConfig.TokenSource(context.Background(), token)
+	client = oauth2.NewClient(context.Background(), ts)
 }
 
 func main() {
@@ -64,6 +73,10 @@ func handleGoogleCallback(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	saveToken(token)
+
+	ts := oauthConfig.TokenSource(context.Background(), token)
+	client = oauth2.NewClient(context.Background(), ts)
+
 	http.Redirect(w, r, "/next-meeting", http.StatusTemporaryRedirect)
 }
 
@@ -87,46 +100,88 @@ func tokenFromFile() (*oauth2.Token, error) {
 	return token, err
 }
 
+type Meeting struct {
+	Name      string `json:"name"`
+	StartTime string `json:"startTime"`
+	EndTime   string `json:"endTime"`
+}
+
+type MeetingResponse struct {
+	CurrentMeeting *Meeting `json:"currentMeeting,omitempty"`
+	NextMeeting    *Meeting `json:"nextMeeting,omitempty"`
+}
+
 func handleNextMeeting(w http.ResponseWriter, r *http.Request) {
-	token, err := tokenFromFile()
-	if err != nil {
-		http.Error(w, "Unable to get token from file: "+err.Error(), http.StatusInternalServerError)
+	if client == nil {
+		http.Error(w, "Client not initialized. Please login first.", http.StatusUnauthorized)
 		return
 	}
 
-	client := oauthConfig.Client(context.Background(), token)
 	srv, err := calendar.NewService(context.Background(), option.WithHTTPClient(client))
 	if err != nil {
-		http.Error(w, "Unable to create calendar service: "+err.Error(), http.StatusInternalServerError)
+		response := "Unable to retrieve events: " + err.Error() + "\n<a href=\"/login\">Login</a>"
+		w.Header().Set("Content-Type", "text/html")
+		fmt.Fprint(w, response)
 		return
 	}
 
 	t := time.Now().Format(time.RFC3339)
-	events, err := srv.Events.List("primary").ShowDeleted(false).
+	events, err := srv.Events.List("primary").ShowDeleted(false).EventTypes("default").
 		SingleEvents(true).TimeMin(t).MaxResults(10).OrderBy("startTime").Do()
 	if err != nil {
-		http.Error(w, "Unable to retrieve events: "+err.Error(), http.StatusInternalServerError)
+		response := "Unable to retrieve events: " + err.Error() + "\n<a href=\"/login\">Login</a>"
+		w.Header().Set("Content-Type", "text/html")
+		fmt.Fprint(w, response)
 		return
 	}
 
+	now := time.Now()
+	var currentMeeting, nextMeeting *calendar.Event
 	for _, event := range events.Items {
-		if !isWorkingLocation(event) {
-			start := event.Start.DateTime
-			if start == "" {
-				start = event.Start.Date
+		endTime, err := time.Parse(time.RFC3339, event.End.DateTime)
+		if err != nil {
+			endTime, _ = time.Parse("2006-01-02", event.End.Date)
+		}
+		if now.Before(endTime) {
+			if currentMeeting == nil {
+				startTime, err := time.Parse(time.RFC3339, event.Start.DateTime)
+				if err != nil {
+					startTime, _ = time.Parse("2006-01-02", event.Start.Date)
+				}
+				if now.After(startTime) {
+					currentMeeting = event
+				} else {
+					nextMeeting = event
+					break
+				}
+			} else {
+				nextMeeting = event
+				break
 			}
-			fmt.Fprintf(w, "Next meeting: %s (%s)\n", event.Summary, start)
-			return
 		}
 	}
 
-	fmt.Fprint(w, "No upcoming meetings found.")
-}
+	var response MeetingResponse
+	if currentMeeting != nil {
+		response.CurrentMeeting = &Meeting{
+			Name:      currentMeeting.Summary,
+			StartTime: currentMeeting.Start.DateTime,
+			EndTime:   currentMeeting.End.DateTime,
+		}
+	}
 
-func isWorkingLocation(event *calendar.Event) bool {
-	return event.EventType == "workingLocation"
-}
+	if nextMeeting != nil {
+		response.NextMeeting = &Meeting{
+			Name:      nextMeeting.Summary,
+			StartTime: nextMeeting.Start.DateTime,
+			EndTime:   nextMeeting.End.DateTime,
+		}
+	}
 
-func containsIgnoreCase(str, substr string) bool {
-	return strings.Contains(strings.ToLower(str), strings.ToLower(substr))
+	if currentMeeting == nil && nextMeeting == nil {
+		response = MeetingResponse{}
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(response)
 }
