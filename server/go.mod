@@ -5,6 +5,7 @@ go 1.23.2
 require (
 	github.com/davecgh/go-spew v1.1.1
 	github.com/joho/godotenv v1.5.1
+	github.com/rs/cors v1.11.1
 	golang.org/x/oauth2 v0.23.0
 	google.golang.org/api v0.204.0
 )

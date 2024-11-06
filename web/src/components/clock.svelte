@@ -10,6 +10,8 @@
 	}: { forceTime?: Date; large?: boolean; onclick?: () => void; showDetail?: boolean } = $props();
 	let currentTime = $state(new Date());
 	let pulsePlaying: boolean = $state(false);
+	let nextMeetingTime: string = $state('');
+	let nextMeetingName: string = $state('');
 
 	onMount(() => {
 		if (forceTime !== undefined) {
@@ -30,10 +32,25 @@
 			}
 		}, 200);
 
+		loadNextMeeting().finally();
+
 		return () => {
 			clearInterval(intervalId);
 		};
 	});
+
+	const loadNextMeeting = async () => {
+		try {
+			const response = await fetch('http://rsheasby-mbp:8080/next-meeting');
+			const data = await response.json();
+			if (data.nextMeeting) {
+				nextMeetingTime = new Date(data.nextMeeting.startTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+				nextMeetingName = data.nextMeeting.name;
+			}
+		} catch (error) {
+			console.error('Error loading next meeting:', error);
+		}
+	};
 
 	const twelveHour = (t: Date) => {
 		let h = t.getHours();
@@ -52,7 +69,7 @@
 
 <!-- svelte-ignore a11y_click_events_have_key_events -->
 <!-- svelte-ignore a11y_no_static_element_interactions -->
-<div class="flex flex-col gap-1 p-2 w-fit max-w-full" {onclick}>
+<div class="flex flex-col gap-1 p-2 w-fit max-w-full" onclick={onclick}>
 	<div class="grid-date text-xs font-light text-gray-500">
 		it is the <strong class="rabbit-text">{day}</strong> of {month}
 		{year},
@@ -70,18 +87,13 @@
 	</div>
 	<div class="text-xs font-extralight">
 		<div class="grid-meet-time text-gray-300 text-xs text-right">
-			<!-- and you have a meeting in <strong class="highlighted underarrow right animate-pulse transition-opacity" class:underarrow-hide={!showDetail}>10 minutes</strong>. -->
-			<!-- and your next meeting is at <em>12:30 AM</em>. -->
-			<!-- your next meeting is in <em>two hours</em>. -->
-            <i>and your calendar is free.</i>
+			and your next meeting is at <strong class="highlighted underarrow right">{nextMeetingTime}</strong>.
 		</div>
 		<div
 			class="grid-meet-name flex flex-row items-center justify-end pr-1 text-right transition-opacity text-xs"
 			class:opacity-0={!showDetail}
 		>
-			<!-- <em>Experience Standup</em> -->
-			<!-- <div class="loader"></div> -->
-			<!-- <i>Lilo & Friends</i> -->
+			<em>{nextMeetingName}</em>
 		</div>
 	</div>
 </div>
@@ -129,6 +141,7 @@
 		border-left: 0.5em solid transparent;
 		border-right: 0.5em solid transparent;
 		border-top: 0.5em solid var(--primary);
+		z-index: 0;
 	}
 
 	strong.underarrow.right:after {

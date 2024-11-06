@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/joho/godotenv"
+	"github.com/rs/cors" // Add this import
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/google"
 	"google.golang.org/api/calendar/v3"
@@ -46,13 +47,16 @@ func init() {
 }
 
 func main() {
-	http.HandleFunc("/", handleMain)
-	http.HandleFunc("/login", handleGoogleLogin)
-	http.HandleFunc("/callback", handleGoogleCallback)
-	http.HandleFunc("/next-meeting", handleNextMeeting)
+	mux := http.NewServeMux()
+	mux.HandleFunc("/", handleMain)
+	mux.HandleFunc("/login", handleGoogleLogin)
+	mux.HandleFunc("/callback", handleGoogleCallback)
+	mux.HandleFunc("/next-meeting", handleNextMeeting)
+
+	handler := cors.Default().Handler(mux) // Add CORS handler
 
 	fmt.Println("Started running on http://localhost:8080")
-	log.Fatal(http.ListenAndServe(":8080", nil))
+	log.Fatal(http.ListenAndServe(":8080", handler))
 }
 
 func handleMain(w http.ResponseWriter, r *http.Request) {
