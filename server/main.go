@@ -7,6 +7,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/joho/godotenv"
@@ -102,21 +103,30 @@ func handleNextMeeting(w http.ResponseWriter, r *http.Request) {
 
 	t := time.Now().Format(time.RFC3339)
 	events, err := srv.Events.List("primary").ShowDeleted(false).
-		SingleEvents(true).TimeMin(t).MaxResults(1).OrderBy("startTime").Do()
+		SingleEvents(true).TimeMin(t).MaxResults(10).OrderBy("startTime").Do()
 	if err != nil {
-		http.Error(w, "Unable to retrieve next meeting: "+err.Error(), http.StatusInternalServerError)
+		http.Error(w, "Unable to retrieve events: "+err.Error(), http.StatusInternalServerError)
 		return
 	}
 
-	if len(events.Items) == 0 {
-		fmt.Fprint(w, "No upcoming events found.")
-		return
+	for _, event := range events.Items {
+		if !isWorkingLocation(event) {
+			start := event.Start.DateTime
+			if start == "" {
+				start = event.Start.Date
+			}
+			fmt.Fprintf(w, "Next meeting: %s (%s)\n", event.Summary, start)
+			return
+		}
 	}
 
-	event := events.Items[0]
-	start := event.Start.DateTime
-	if start == "" {
-		start = event.Start.Date
-	}
-	fmt.Fprintf(w, "Next meeting: %s (%s)\n", event.Summary, start)
+	fmt.Fprint(w, "No upcoming meetings found.")
+}
+
+func isWorkingLocation(event *calendar.Event) bool {
+	return event.EventType == "workingLocation"
+}
+
+func containsIgnoreCase(str, substr string) bool {
+	return strings.Contains(strings.ToLower(str), strings.ToLower(substr))
 }
