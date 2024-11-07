@@ -2,6 +2,12 @@
 	import { nthNumber } from '$lib/nthNumber';
 	import { onMount } from 'svelte';
 
+	type Meeting = {
+		name: string;
+		startTime: Date;
+		endTime: Date;
+	};
+
 	let {
 		forceTime,
 		large,
@@ -10,8 +16,28 @@
 	}: { forceTime?: Date; large?: boolean; onclick?: () => void; showDetail?: boolean } = $props();
 	let currentTime = $state(new Date());
 	let pulsePlaying: boolean = $state(false);
-	let nextMeetingTime: string = $state('');
-	let nextMeetingName: string = $state('');
+
+	let meetings = $state<Meeting[]>([]);
+	let currentMeeting: Meeting | undefined = $derived(meetings.find(meeting => meeting.startTime <= currentTime && meeting.endTime >= currentTime));
+	let nextMeeting: Meeting | undefined = $derived(meetings.find(meeting => meeting.startTime > currentTime));
+
+	async function fetchMeetings() {
+		try {
+			const response = await fetch('https://dashboard.lobster-drum.ts.net/meetings');
+			const data = await response.json();
+			const parsedData = data.map((meeting: any) => ({
+				...meeting,
+				startTime: new Date(meeting.startTime),
+				endTime: new Date(meeting.endTime)
+			}));
+			if (JSON.stringify(meetings) !== JSON.stringify(parsedData)) {
+				meetings = parsedData;
+			}
+		} catch (error) {
+			console.error('Error fetching meetings:', error);
+		}
+		console.log({currentMeeting, nextMeeting});
+	}
 
 	onMount(() => {
 		if (forceTime !== undefined) {
@@ -32,25 +58,14 @@
 			}
 		}, 200);
 
-		loadNextMeeting().finally();
+		fetchMeetings();
+		const fetchIntervalId = setInterval(fetchMeetings, 5000);
 
 		return () => {
 			clearInterval(intervalId);
+			clearInterval(fetchIntervalId);
 		};
 	});
-
-	const loadNextMeeting = async () => {
-		try {
-			const response = await fetch('http://rsheasby-mbp:8080/next-meeting');
-			const data = await response.json();
-			if (data.nextMeeting) {
-				nextMeetingTime = new Date(data.nextMeeting.startTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-				nextMeetingName = data.nextMeeting.name;
-			}
-		} catch (error) {
-			console.error('Error loading next meeting:', error);
-		}
-	};
 
 	const twelveHour = (t: Date) => {
 		let h = t.getHours();
@@ -87,13 +102,13 @@
 	</div>
 	<div class="text-xs font-extralight">
 		<div class="grid-meet-time text-gray-300 text-xs text-right">
-			and your next meeting is at <strong class="highlighted underarrow right">{nextMeetingTime}</strong>.
+			and your next meeting is at <strong class="highlighted underarrow right">{nextMeeting?.startTime}</strong>.
 		</div>
 		<div
 			class="grid-meet-name flex flex-row items-center justify-end pr-1 text-right transition-opacity text-xs"
 			class:opacity-0={!showDetail}
 		>
-			<em>{nextMeetingName}</em>
+			<em>{nextMeeting?.name}</em>
 		</div>
 	</div>
 </div>

@@ -10,7 +10,7 @@ import (
 	"time"
 
 	"github.com/joho/godotenv"
-	"github.com/rs/cors" // Add this import
+	"github.com/rs/cors"
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/google"
 	"google.golang.org/api/calendar/v3"
@@ -51,9 +51,9 @@ func main() {
 	mux.HandleFunc("/", handleMain)
 	mux.HandleFunc("/login", handleGoogleLogin)
 	mux.HandleFunc("/callback", handleGoogleCallback)
-	mux.HandleFunc("/next-meeting", handleNextMeeting)
+	mux.HandleFunc("/meetings", handleMeetings)
 
-	handler := cors.Default().Handler(mux) // Add CORS handler
+	handler := cors.Default().Handler(mux)
 
 	fmt.Println("Started running on http://localhost:8080")
 	log.Fatal(http.ListenAndServe(":8080", handler))
@@ -81,7 +81,7 @@ func handleGoogleCallback(w http.ResponseWriter, r *http.Request) {
 	ts := oauthConfig.TokenSource(context.Background(), token)
 	client = oauth2.NewClient(context.Background(), ts)
 
-	http.Redirect(w, r, "/next-meeting", http.StatusTemporaryRedirect)
+	http.Redirect(w, r, "/todays-meetings", http.StatusTemporaryRedirect)
 }
 
 func saveToken(token *oauth2.Token) {
@@ -110,12 +110,7 @@ type Meeting struct {
 	EndTime   string `json:"endTime"`
 }
 
-type MeetingResponse struct {
-	CurrentMeeting *Meeting `json:"currentMeeting,omitempty"`
-	NextMeeting    *Meeting `json:"nextMeeting,omitempty"`
-}
-
-func handleNextMeeting(w http.ResponseWriter, r *http.Request) {
+func handleMeetings(w http.ResponseWriter, r *http.Request) {
 	if client == nil {
 		http.Error(w, "Client not initialized. Please login first.", http.StatusUnauthorized)
 		return
@@ -129,9 +124,12 @@ func handleNextMeeting(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	t := time.Now().Format(time.RFC3339)
+	now := time.Now()
+	startOfDay := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, now.Location()).Format(time.RFC3339)
+	endOfDay := time.Date(now.Year(), now.Month(), now.Day(), 23, 59, 59, 999, now.Location()).Format(time.RFC3339)
+
 	events, err := srv.Events.List("primary").ShowDeleted(false).EventTypes("default").
-		SingleEvents(true).TimeMin(t).MaxResults(10).OrderBy("startTime").Do()
+		SingleEvents(true).TimeMin(startOfDay).TimeMax(endOfDay).OrderBy("startTime").Do()
 	if err != nil {
 		response := "Unable to retrieve events: " + err.Error() + "\n<a href=\"/login\">Login</a>"
 		w.Header().Set("Content-Type", "text/html")
@@ -139,53 +137,15 @@ func handleNextMeeting(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	now := time.Now()
-	var currentMeeting, nextMeeting *calendar.Event
+	var meetings []Meeting
 	for _, event := range events.Items {
-		endTime, err := time.Parse(time.RFC3339, event.End.DateTime)
-		if err != nil {
-			endTime, _ = time.Parse("2006-01-02", event.End.Date)
-		}
-		if now.Before(endTime) {
-			if currentMeeting == nil {
-				startTime, err := time.Parse(time.RFC3339, event.Start.DateTime)
-				if err != nil {
-					startTime, _ = time.Parse("2006-01-02", event.Start.Date)
-				}
-				if now.After(startTime) {
-					currentMeeting = event
-				} else {
-					nextMeeting = event
-					break
-				}
-			} else {
-				nextMeeting = event
-				break
-			}
-		}
-	}
-
-	var response MeetingResponse
-	if currentMeeting != nil {
-		response.CurrentMeeting = &Meeting{
-			Name:      currentMeeting.Summary,
-			StartTime: currentMeeting.Start.DateTime,
-			EndTime:   currentMeeting.End.DateTime,
-		}
-	}
-
-	if nextMeeting != nil {
-		response.NextMeeting = &Meeting{
-			Name:      nextMeeting.Summary,
-			StartTime: nextMeeting.Start.DateTime,
-			EndTime:   nextMeeting.End.DateTime,
-		}
-	}
-
-	if currentMeeting == nil && nextMeeting == nil {
-		response = MeetingResponse{}
+		meetings = append(meetings, Meeting{
+			Name:      event.Summary,
+			StartTime: event.Start.DateTime,
+			EndTime:   event.End.DateTime,
+		})
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(response)
+	json.NewEncoder(w).Encode(meetings)
 }
