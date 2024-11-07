@@ -22,7 +22,7 @@ var (
 	client      *http.Client
 )
 
-func init() {
+func main() {
 	err := godotenv.Load()
 	if err != nil {
 		log.Fatalf("Error loading .env file")
@@ -39,14 +39,10 @@ func init() {
 	token, err := tokenFromFile()
 	if err != nil {
 		fmt.Println("Token file not found or invalid, please login to generate a new token.")
-		return
 	}
 
-	ts := oauthConfig.TokenSource(context.Background(), token)
-	client = oauth2.NewClient(context.Background(), ts)
-}
+	client = oauthConfig.Client(context.Background(), token)
 
-func main() {
 	mux := http.NewServeMux()
 	mux.HandleFunc("/", handleMain)
 	mux.HandleFunc("/login", handleGoogleLogin)
@@ -58,8 +54,13 @@ func main() {
 	certFile := os.Getenv("TLS_CERT_FILE")
 	keyFile := os.Getenv("TLS_KEY_FILE")
 
-	fmt.Println("Started running on https://localhost:443")
-	log.Fatal(http.ListenAndServeTLS(":443", certFile, keyFile, handler))
+	if certFile != "" && keyFile != "" {
+		fmt.Println("Started running on https://localhost:443")
+		log.Fatal(http.ListenAndServeTLS(":443", certFile, keyFile, handler))
+	} else {
+		fmt.Println("Started running on http://localhost:8080")
+		log.Fatal(http.ListenAndServe(":8080", handler))
+	}
 }
 
 func handleMain(w http.ResponseWriter, r *http.Request) {
@@ -68,7 +69,7 @@ func handleMain(w http.ResponseWriter, r *http.Request) {
 }
 
 func handleGoogleLogin(w http.ResponseWriter, r *http.Request) {
-	url := oauthConfig.AuthCodeURL("randomstate")
+	url := oauthConfig.AuthCodeURL("randomstate", oauth2.AccessTypeOffline)
 	http.Redirect(w, r, url, http.StatusTemporaryRedirect)
 }
 
@@ -81,19 +82,23 @@ func handleGoogleCallback(w http.ResponseWriter, r *http.Request) {
 	}
 	saveToken(token)
 
-	ts := oauthConfig.TokenSource(context.Background(), token)
-	client = oauth2.NewClient(context.Background(), ts)
+	client = oauthConfig.Client(context.Background(), token)
 
-	http.Redirect(w, r, "/todays-meetings", http.StatusTemporaryRedirect)
+	http.Redirect(w, r, "/meetings", http.StatusTemporaryRedirect)
 }
 
 func saveToken(token *oauth2.Token) {
+	if !token.Valid() {
+		log.Println("Invalid token")
+		return
+	}
 	file, err := os.Create("token.json")
 	if err != nil {
 		log.Fatalf("Unable to create file: %v", err)
 	}
 	defer file.Close()
-	json.NewEncoder(file).Encode(token)
+	refreshToken := map[string]string{"refresh_token": token.RefreshToken}
+	json.NewEncoder(file).Encode(refreshToken)
 }
 
 func tokenFromFile() (*oauth2.Token, error) {

@@ -56,7 +56,7 @@
 			if (newTime.getSeconds() !== currentTime.getSeconds()) {
 				currentTime = newTime;
 			}
-		}, 200);
+		}, 1000/60);
 
 		fetchMeetings();
 		const fetchIntervalId = setInterval(fetchMeetings, 5000);
@@ -80,6 +80,8 @@
 	let minutes = $derived(currentTime.getMinutes().toString().padStart(2, '0'));
 	let seconds = $derived(currentTime.getSeconds().toString().padStart(2, '0'));
 	let ampm = $derived(currentTime.getHours() >= 12 ? 'PM' : 'AM');
+
+	let remainingMinutes = $derived(currentMeeting ? Math.ceil((currentMeeting.endTime.getTime() - currentTime.getTime()) / (60 * 1000)) : 0);
 </script>
 
 <!-- svelte-ignore a11y_click_events_have_key_events -->
@@ -101,15 +103,35 @@
 		<div class="text-md relative top-0.5 flex-1" class:self-end={ampm === 'PM'}>{ampm}</div>
 	</div>
 	<div class="text-xs font-extralight">
+		{#if currentMeeting}
+			<div class="grid-meet-time text-gray-300 text-xs text-right">
+				and your meeting ends in <strong class="highlighted underarrow right">{remainingMinutes} minutes</strong>.
+			</div>
+			<div class="grid-meet-name flex flex-row items-center justify-end pr-1 text-right transition-opacity text-xs">
+				<div class="loader"></div>
+				<em>{currentMeeting.name}</em>
+			</div>
+		{:else if nextMeeting}
+			<div class="grid-meet-time text-gray-300 text-xs text-right">
+				and your next meeting is at <strong class="highlighted underarrow right">{nextMeeting?.startTime}</strong>.
+			</div>
+			<div
+				class="grid-meet-name flex flex-row items-center justify-end pr-1 text-right transition-opacity text-xs"
+				class:opacity-0={!showDetail}
+			>
+				<em>{nextMeeting?.name}</em>
+			</div>
+		{:else}
 		<div class="grid-meet-time text-gray-300 text-xs text-right">
-			and your next meeting is at <strong class="highlighted underarrow right">{nextMeeting?.startTime}</strong>.
+			and your calendar is free.
 		</div>
 		<div
 			class="grid-meet-name flex flex-row items-center justify-end pr-1 text-right transition-opacity text-xs"
 			class:opacity-0={!showDetail}
 		>
-			<em>{nextMeeting?.name}</em>
 		</div>
+		{/if}
+
 	</div>
 </div>
 
