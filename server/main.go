@@ -55,8 +55,11 @@ func main() {
 
 	handler := cors.Default().Handler(mux)
 
-	fmt.Println("Started running on http://localhost:8080")
-	log.Fatal(http.ListenAndServe(":8080", handler))
+	certFile := os.Getenv("TLS_CERT_FILE")
+	keyFile := os.Getenv("TLS_KEY_FILE")
+
+	fmt.Println("Started running on https://localhost:443")
+	log.Fatal(http.ListenAndServeTLS(":443", certFile, keyFile, handler))
 }
 
 func handleMain(w http.ResponseWriter, r *http.Request) {
