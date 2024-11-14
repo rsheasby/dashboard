@@ -5,7 +5,9 @@
 	type Meeting = {
 		name: string;
 		startTime: Date;
+		secondsToStart: number;
 		endTime: Date;
+		secondsToEnd: number;
 	};
 
 	let {
@@ -18,8 +20,36 @@
 	let pulsePlaying: boolean = $state(false);
 
 	let meetings = $state<Meeting[]>([]);
-	let currentMeeting: Meeting | undefined = $derived(meetings.find(meeting => meeting.startTime <= currentTime && meeting.endTime >= currentTime));
-	let nextMeeting: Meeting | undefined = $derived(meetings.find(meeting => meeting.startTime > currentTime));
+	const currentMeeting: Meeting | undefined = $derived(
+		meetings.find((meeting) => meeting.startTime <= currentTime && meeting.endTime >= currentTime)
+	);
+	const currentMeetingSecondsToEnd = $derived.by(() => {
+		if (currentMeeting?.endTime?.getTime() === undefined) {
+			return undefined;
+		}
+		return (currentMeeting.endTime.getTime() - currentTime.getTime()) / 1000;
+	});
+	const currentMeetingDuration = $derived.by(() => {
+		if (currentMeeting?.startTime?.getTime() === undefined || currentMeeting?.endTime?.getTime() === undefined) {
+			return undefined;
+		}
+		return (currentMeeting.endTime.getTime() - currentMeeting.startTime.getTime()) / 1000;
+	});
+	const currentMeetingElapsedTime = $derived.by(() => {
+		if (currentMeeting?.startTime?.getTime() === undefined) {
+			return undefined;
+		}
+		return (currentTime.getTime() - currentMeeting.startTime.getTime()) / 1000;
+	});
+	let nextMeeting: Meeting | undefined = $derived(
+		meetings.find((meeting) => meeting.startTime > currentTime)
+	);
+	const nextMeetingSecondsToStart = $derived.by(() => {
+		if (nextMeeting?.startTime?.getTime() === undefined) {
+			return undefined;
+		}
+		return (nextMeeting.startTime.getTime() - currentTime.getTime()) / 1000;
+	});
 
 	async function fetchMeetings() {
 		try {
@@ -36,7 +66,7 @@
 		} catch (error) {
 			console.error('Error fetching meetings:', error);
 		}
-		console.log({currentMeeting, nextMeeting});
+		console.log({ currentMeeting, nextMeeting });
 	}
 
 	onMount(() => {
@@ -56,7 +86,7 @@
 			if (newTime.getSeconds() !== currentTime.getSeconds()) {
 				currentTime = newTime;
 			}
-		}, 1000/60);
+		}, 1000 / 60);
 
 		fetchMeetings();
 		const fetchIntervalId = setInterval(fetchMeetings, 5000);
@@ -81,17 +111,21 @@
 	let seconds = $derived(currentTime.getSeconds().toString().padStart(2, '0'));
 	let ampm = $derived(currentTime.getHours() >= 12 ? 'PM' : 'AM');
 
-	let remainingMinutes = $derived(currentMeeting ? Math.ceil((currentMeeting.endTime.getTime() - currentTime.getTime()) / (60 * 1000)) : 0);
+	let remainingMinutes = $derived(
+		currentMeeting
+			? Math.ceil((currentMeeting.endTime.getTime() - currentTime.getTime()) / (60 * 1000))
+			: 0
+	);
 </script>
 
 <!-- svelte-ignore a11y_click_events_have_key_events -->
 <!-- svelte-ignore a11y_no_static_element_interactions -->
-<div class="flex flex-col gap-1 p-2 w-fit max-w-full" onclick={onclick}>
+<div class="flex w-fit max-w-full flex-col gap-1 p-2" {onclick}>
 	<div class="grid-date text-xs font-light text-gray-500">
 		it is the <strong class="rabbit-text">{day}</strong> of {month}
 		{year},
 	</div>
-	<div class="grid-time flex flex-row justify-center gap-1 flex-wrap">
+	<div class="grid-time flex flex-row flex-wrap justify-center gap-1">
 		<!-- <div class="flex-1"></div> -->
 		<div class="flex flex-row gap-0.5 leading-[1]">
 			<div class="mr-0.5 text-6xl font-bold">{hours}</div>
@@ -104,38 +138,59 @@
 	</div>
 	<div class="text-xs font-extralight">
 		{#if currentMeeting}
-			<div class="grid-meet-time text-gray-300 text-xs text-right">
-				and your meeting ends in <strong class="highlighted underarrow right">{remainingMinutes} minutes</strong>.
-			</div>
-			<div class="grid-meet-name flex flex-row items-center justify-end pr-1 text-right transition-opacity text-xs">
-				<div class="loader"></div>
-				<em>{currentMeeting.name}</em>
-			</div>
-		{:else if nextMeeting}
-			<div class="grid-meet-time text-gray-300 text-xs text-right">
-				and your next meeting is at <strong class="highlighted underarrow right">{nextMeeting?.startTime}</strong>.
+			<div class="grid-meet-time text-right text-xs text-gray-300">
+				and your meeting ends in <strong class="highlighted underarrow right"
+					>{remainingMinutes} minutes</strong
+				>.
 			</div>
 			<div
-				class="grid-meet-name flex flex-row items-center justify-end pr-1 text-right transition-opacity text-xs"
-				class:opacity-0={!showDetail}
+				class="grid-meet-name flex flex-col items-end justify-center pr-1 text-right text-xs transition-opacity"
 			>
-				<em>{nextMeeting?.name}</em>
+				<!-- <div class="loader"></div> -->
+				<em>{currentMeeting.name}</em>
+				<progress class="w-full h-0.5 progress-rabbit" value={currentMeetingElapsedTime} max={currentMeetingDuration}></progress>
 			</div>
+		{:else if nextMeeting}
+			{#if nextMeetingSecondsToStart && nextMeetingSecondsToStart < 60 * 60 * 1}
+				<div class="grid-meet-time text-right text-xs text-gray-300">
+					and your next meeting is in
+					<strong class="highlighted underarrow right" class:underarrow-hide={!showDetail} class:animate-pulse={nextMeetingSecondsToStart < 60 * 10}>
+						{Math.ceil(nextMeetingSecondsToStart / 60)} minutes
+					</strong>.
+				</div>
+				<div
+					class="grid-meet-name flex flex-row items-center justify-end pr-1 text-right text-xs transition-opacity"
+					class:opacity-0={!showDetail}
+				>
+					<em>{nextMeeting?.name}</em>
+				</div>
+			{:else}
+				<div class="grid-meet-time text-right text-xs text-gray-300">
+					and your next meeting is at
+					<strong>
+						{nextMeeting?.startTime?.toLocaleTimeString([], {
+							hour: 'numeric',
+							minute: '2-digit',
+							hour12: true
+						})}
+					</strong>.
+				</div>
+				<div
+					class="grid-meet-name flex flex-row items-center justify-end pr-1 text-right text-xs transition-opacity"
+					class:opacity-0={!showDetail}
+				>
+				</div>
+			{/if}
 		{:else}
-		<div class="grid-meet-time text-gray-300 text-xs text-right">
-			and your calendar is free.
-		</div>
-		<div
-			class="grid-meet-name flex flex-row items-center justify-end pr-1 text-right transition-opacity text-xs"
-			class:opacity-0={!showDetail}
-		>
-		</div>
+			<div class="grid-meet-time text-right text-xs text-gray-300">and your calendar is free.</div>
 		{/if}
-
 	</div>
 </div>
 
 <style>
+	.progress-rabbit::-webkit-progress-value {
+		background: var(--primary);
+	}
 	@keyframes saturatePulse {
 		0%,
 		45%,

@@ -3,7 +3,7 @@
 	import Weather from '@components/weather.svelte';
 
 	type View = 'overview' | 'clock' | 'weather';
-	let currentView = $state<View>('overview');
+	let currentView = $state<View>('clock');
 	let clockShown: boolean = $derived(currentView === 'overview' || currentView === 'clock');
 	let weatherShown: boolean = $derived(currentView === 'overview' || currentView === 'weather');
 
